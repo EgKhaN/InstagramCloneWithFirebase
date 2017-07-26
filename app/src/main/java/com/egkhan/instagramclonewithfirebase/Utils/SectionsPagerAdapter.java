@@ -1,4 +1,4 @@
-package com.egkhan.instagramclonewithfirebase.Home;
+package com.egkhan.instagramclonewithfirebase.Utils;
 
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;

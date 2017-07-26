@@ -10,6 +10,7 @@ import android.view.MenuItem;
 
 import com.egkhan.instagramclonewithfirebase.R;
 import com.egkhan.instagramclonewithfirebase.Utils.BottomNavigationViewHelper;
+import com.egkhan.instagramclonewithfirebase.Utils.SectionsPagerAdapter;
 import com.ittianyu.bottomnavigationviewex.BottomNavigationViewEx;
 
 public class HomeActivity extends AppCompatActivity {
