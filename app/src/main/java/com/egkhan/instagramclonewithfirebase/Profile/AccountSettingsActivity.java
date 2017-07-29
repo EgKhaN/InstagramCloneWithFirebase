@@ -6,6 +6,8 @@ import android.support.annotation.Nullable;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -14,7 +16,9 @@ import android.widget.ListView;
 import android.widget.RelativeLayout;
 
 import com.egkhan.instagramclonewithfirebase.R;
+import com.egkhan.instagramclonewithfirebase.Utils.BottomNavigationViewHelper;
 import com.egkhan.instagramclonewithfirebase.Utils.SectionsStatePagerAdapter;
+import com.ittianyu.bottomnavigationviewex.BottomNavigationViewEx;
 
 import java.util.ArrayList;
 
@@ -24,6 +28,8 @@ import java.util.ArrayList;
 
 public class AccountSettingsActivity extends AppCompatActivity {
     private static final String TAG = "AccountSettingsActivity";
+    public static final int ACTIVITY_NUM =4;
+
     private Context mContext;
     SectionsStatePagerAdapter pagerAdapter;
     ViewPager viewPager;
@@ -39,6 +45,7 @@ public class AccountSettingsActivity extends AppCompatActivity {
         relativeLayout = (RelativeLayout) findViewById(R.id.relLayout1);
         setupSettingsList();
         setupFragments();
+        setupBottomNavigationView();
 
         //setup backarrow for navigating back to profileACtivity
         ImageView backArrow = (ImageView) findViewById(R.id.backArrow);
@@ -81,5 +88,18 @@ public class AccountSettingsActivity extends AppCompatActivity {
                 setViewPager(position);
             }
         });
+    }
+    /**
+     * Bottom NavigationView setup
+     */
+    private void setupBottomNavigationView(){
+        Log.d(TAG, "setupBottomNavigationView: setting up BottomnavigationView");
+        BottomNavigationViewEx bottomNavigationViewEx = (BottomNavigationViewEx) findViewById(R.id.bottomNavViewBar);
+        BottomNavigationViewHelper.setupBottomNavigationView(bottomNavigationViewEx);
+        BottomNavigationViewHelper.enableNavigation(this,bottomNavigationViewEx);
+        //activity değişince ,alakalı menu de seçili olsun diye
+        Menu menu = bottomNavigationViewEx.getMenu();
+        MenuItem menuItem = menu.getItem(ACTIVITY_NUM);
+        menuItem.setChecked(true);
     }
 }
