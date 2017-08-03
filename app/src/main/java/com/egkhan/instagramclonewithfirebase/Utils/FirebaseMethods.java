@@ -7,6 +7,7 @@ import android.widget.Toast;
 
 import com.egkhan.instagramclonewithfirebase.Models.User;
 import com.egkhan.instagramclonewithfirebase.Models.UserAccountSettings;
+import com.egkhan.instagramclonewithfirebase.Models.UserSettings;
 import com.egkhan.instagramclonewithfirebase.R;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -87,40 +88,94 @@ public class FirebaseMethods {
                     }
                 });
     }
-public void sendVerificationEmail(){
-    FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-    if(user!=null)
-    {
-        user.sendEmailVerification().addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
-            if(task.isSuccessful())
-            {
 
-            }
-            else
-            {
-                Toast.makeText(mContext, "couldnt send verification email", Toast.LENGTH_SHORT).show();
-            }
-            }
-        });
+    public void sendVerificationEmail() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            user.sendEmailVerification().addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    if (task.isSuccessful()) {
+
+                    } else {
+                        Toast.makeText(mContext, "couldnt send verification email", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        }
     }
-}
+
     /**
      * Add information to user nodes and acount settings
+     *
      * @param email
      * @param username
      * @param description
      * @param website
      * @param profile_photo
      */
-    public void AddNewUser(String email,String username,String description, String website, String profile_photo)
-    {
-        User user = new User(userID,1,email,StringManipulation.condenseUsername(username));
+    public void AddNewUser(String email, String username, String description, String website, String profile_photo) {
+        User user = new User(userID, 1, email, StringManipulation.condenseUsername(username));
 
         databaseReference.child(mContext.getString(R.string.dbname_users)).child(userID).setValue(user);
 
-        UserAccountSettings userAccountSettings = new UserAccountSettings(description,username,(long) 0,(long)0,(long)0,profile_photo,StringManipulation.condenseUsername(username),website);
+        UserAccountSettings userAccountSettings = new UserAccountSettings(description, username, (long) 0, (long) 0, (long) 0, profile_photo, StringManipulation.condenseUsername(username), website);
         databaseReference.child(mContext.getString(R.string.dbname_account_settings)).child(userID).setValue(userAccountSettings);
+    }
+
+    /**
+     *
+     * @param dataSnapshot
+     * @return
+     */
+    public UserSettings getUserSettings(DataSnapshot dataSnapshot)
+    {
+        Log.d(TAG, "getUserAccountSettings: retreiving user account settings from database");
+        UserAccountSettings settings = new UserAccountSettings();
+        User user = new User();
+
+        for(DataSnapshot ds : dataSnapshot.getChildren())
+        {
+            //user_account_settings node
+            if(ds.getKey().equals(mContext.getString(R.string.dbname_account_settings)))
+            {
+                Log.d(TAG, "getUserAccountSettings: datasnapshot"+ds);
+                try
+                {
+                    settings.setDisplay_name(ds.child(userID).getValue(UserAccountSettings.class).getDisplay_name());
+                    settings.setUsername(ds.child(userID).getValue(UserAccountSettings.class).getUsername());
+                    settings.setWebsite(ds.child(userID).getValue(UserAccountSettings.class).getWebsite());
+                    settings.setDescription(ds.child(userID).getValue(UserAccountSettings.class).getDescription());
+                    settings.setProfile_photo(ds.child(userID).getValue(UserAccountSettings.class).getProfile_photo());
+                    settings.setPosts(ds.child(userID).getValue(UserAccountSettings.class).getPosts());
+                    settings.setFollowers(ds.child(userID).getValue(UserAccountSettings.class).getFollowers());
+                    settings.setFollowing(ds.child(userID).getValue(UserAccountSettings.class).getFollowing());
+                    Log.d(TAG, "getUserAccountSettings: retieved userSetting information: "+settings.toString() );
+                }
+                catch (NullPointerException e)
+                {
+                    Log.e(TAG, "getUserAccountSettings: NullPointer exception =" +e.getMessage() );
+                }
+            }
+            //users node
+            if(ds.getKey().equals(mContext.getString(R.string.dbname_users)))
+            {
+                Log.d(TAG, "getUserAccountSettings: datasnapshot"+ds);
+                try
+                {
+                    user.setUsername(ds.child(userID).getValue(User.class).getUsername());
+                    user.setPhone_number(ds.child(userID).getValue(User.class).getPhone_number());
+                    user.setEmail(ds.child(userID).getValue(User.class).getEmail());
+                    user.setUser_id(ds.child(userID).getValue(User.class).getUser_id());
+                    Log.d(TAG, "getUser: retieved userinformation: "+user.toString() );
+
+                }
+                catch (NullPointerException e)
+                {
+                    Log.e(TAG, "getUserAccountSettings: NullPointer exception =" +e.getMessage() );
+                }
+            }
+        }
+        return new UserSettings(user,settings);
     }
 }
