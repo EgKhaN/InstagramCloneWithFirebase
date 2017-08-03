@@ -79,5 +79,6 @@
         android:layout_alignRight="@id/loginRequestLoadingProgressBar"
         android:layout_alignLeft="@id/loginRequestLoadingProgressBar"
         android:gravity="center"
+        android:id="@+id/pleaseWaitTV"
         />
 </RelativeLayout>

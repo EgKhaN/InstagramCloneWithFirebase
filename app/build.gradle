@@ -37,4 +37,10 @@ dependencies {
     //Universal Image Loader
     compile 'com.nostra13.universalimageloader:universal-image-loader:1.9.5'
 
+    //firebase authentication
+    compile 'com.google.firebase:firebase-auth:10.0.1'
+    //firebase database
+    compile 'com.google.firebase:firebase-database:10.0.1'
 }
+//firebase
+apply plugin: 'com.google.gms.google-services'
