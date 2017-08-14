@@ -1,6 +1,7 @@
 package com.egkhan.instagramclonewithfirebase.Profile;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.view.ViewPager;
@@ -46,6 +47,7 @@ public class AccountSettingsActivity extends AppCompatActivity {
         setupSettingsList();
         setupFragments();
         setupBottomNavigationView();
+        getIncomingIntent();
 
         //setup backarrow for navigating back to profileACtivity
         ImageView backArrow = (ImageView) findViewById(R.id.backArrow);
@@ -56,6 +58,16 @@ public class AccountSettingsActivity extends AppCompatActivity {
                 finish();
             }
         });
+    }
+
+    void getIncomingIntent()
+    {
+        Intent intent = getIntent();
+        if(intent.hasExtra(getString(R.string.calling_activity)))
+        {
+            Log.d(TAG, "getIncomingIntent: received incoming intent from "+ getString(R.string.profile_activity));
+            setViewPager(pagerAdapter.getFragmentNumber(getString(R.string.edit_profile_fragment)));
+        }
     }
 
     void setupFragments() {
@@ -102,4 +114,6 @@ public class AccountSettingsActivity extends AppCompatActivity {
         MenuItem menuItem = menu.getItem(ACTIVITY_NUM);
         menuItem.setChecked(true);
     }
+
+
 }

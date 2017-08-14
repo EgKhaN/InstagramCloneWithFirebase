@@ -44,18 +44,18 @@ public class FirebaseMethods {
         }
     }
 
-    public boolean checkIfUsernameExists(String username, DataSnapshot dataSnapshot) {
-        Log.d(TAG, "checkIfUsernameExists: checking if " + username + " aldready exits");
-
-        User user = new User();
-        for (DataSnapshot ds : dataSnapshot.child(userID).getChildren()) {
-            user.setUsername(ds.getValue(User.class).getUsername());
-            if (StringManipulation.expandUsername(user.getUsername()).equals(username)) {
-                return true;
-            }
-        }
-        return false;
-    }
+//    public boolean checkIfUsernameExists(String username, DataSnapshot dataSnapshot) {
+//        Log.d(TAG, "checkIfUsernameExists: checking if " + username + " aldready exits");
+//
+//        User user = new User();
+//        for (DataSnapshot ds : dataSnapshot.child(userID).getChildren()) {
+//            user.setUsername(ds.getValue(User.class).getUsername());
+//            if (StringManipulation.expandUsername(user.getUsername()).equals(username)) {
+//                return true;
+//            }
+//        }
+//        return false;
+//    }
 
     /**
      * Register new email and password to Firebase Authentication
@@ -124,24 +124,19 @@ public class FirebaseMethods {
     }
 
     /**
-     *
      * @param dataSnapshot
      * @return
      */
-    public UserSettings getUserSettings(DataSnapshot dataSnapshot)
-    {
+    public UserSettings getUserSettings(DataSnapshot dataSnapshot) {
         Log.d(TAG, "getUserAccountSettings: retreiving user account settings from database");
         UserAccountSettings settings = new UserAccountSettings();
         User user = new User();
 
-        for(DataSnapshot ds : dataSnapshot.getChildren())
-        {
+        for (DataSnapshot ds : dataSnapshot.getChildren()) {
             //user_account_settings node
-            if(ds.getKey().equals(mContext.getString(R.string.dbname_account_settings)))
-            {
-                Log.d(TAG, "getUserAccountSettings: datasnapshot"+ds);
-                try
-                {
+            if (ds.getKey().equals(mContext.getString(R.string.dbname_account_settings))) {
+                Log.d(TAG, "getUserAccountSettings: datasnapshot" + ds);
+                try {
                     settings.setDisplay_name(ds.child(userID).getValue(UserAccountSettings.class).getDisplay_name());
                     settings.setUsername(ds.child(userID).getValue(UserAccountSettings.class).getUsername());
                     settings.setWebsite(ds.child(userID).getValue(UserAccountSettings.class).getWebsite());
@@ -150,32 +145,32 @@ public class FirebaseMethods {
                     settings.setPosts(ds.child(userID).getValue(UserAccountSettings.class).getPosts());
                     settings.setFollowers(ds.child(userID).getValue(UserAccountSettings.class).getFollowers());
                     settings.setFollowing(ds.child(userID).getValue(UserAccountSettings.class).getFollowing());
-                    Log.d(TAG, "getUserAccountSettings: retieved userSetting information: "+settings.toString() );
-                }
-                catch (NullPointerException e)
-                {
-                    Log.e(TAG, "getUserAccountSettings: NullPointer exception =" +e.getMessage() );
+                    Log.d(TAG, "getUserAccountSettings: retieved userSetting information: " + settings.toString());
+                } catch (NullPointerException e) {
+                    Log.e(TAG, "getUserAccountSettings: NullPointer exception =" + e.getMessage());
                 }
             }
             //users node
-            if(ds.getKey().equals(mContext.getString(R.string.dbname_users)))
-            {
-                Log.d(TAG, "getUserAccountSettings: datasnapshot"+ds);
-                try
-                {
+            if (ds.getKey().equals(mContext.getString(R.string.dbname_users))) {
+                Log.d(TAG, "getUserAccountSettings: datasnapshot" + ds);
+                try {
                     user.setUsername(ds.child(userID).getValue(User.class).getUsername());
                     user.setPhone_number(ds.child(userID).getValue(User.class).getPhone_number());
                     user.setEmail(ds.child(userID).getValue(User.class).getEmail());
                     user.setUser_id(ds.child(userID).getValue(User.class).getUser_id());
-                    Log.d(TAG, "getUser: retieved userinformation: "+user.toString() );
+                    Log.d(TAG, "getUser: retieved userinformation: " + user.toString());
 
-                }
-                catch (NullPointerException e)
-                {
-                    Log.e(TAG, "getUserAccountSettings: NullPointer exception =" +e.getMessage() );
+                } catch (NullPointerException e) {
+                    Log.e(TAG, "getUserAccountSettings: NullPointer exception =" + e.getMessage());
                 }
             }
         }
-        return new UserSettings(user,settings);
+        return new UserSettings(user, settings);
+    }
+
+    public void updateUsername(String userName) {
+        Log.d(TAG, "updateUsername: updating userName to" + userName);
+        databaseReference.child(mContext.getString(R.string.dbname_users)).child(userID).child(mContext.getString(R.string.field_username)).setValue(userName);
+        databaseReference.child(mContext.getString(R.string.dbname_account_settings)).child(userID).child(mContext.getString(R.string.field_username)).setValue(userName);
     }
 }

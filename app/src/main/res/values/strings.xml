@@ -10,4 +10,11 @@
     <!--firebase database field-->
     <string name="dbname_users">users</string>
     <string name="dbname_account_settings">user_account_settings</string>
+    <string name="field_username">username</string>
+
+    <!--Intent extras-->
+    <string name="calling_activity">calling_activity</string>
+
+    <!--Activity Name-->
+    <string name="profile_activity">Profile Activity</string>
 </resources>
