@@ -168,6 +168,25 @@ public class FirebaseMethods {
         return new UserSettings(user, settings);
     }
 
+    /**
+     *
+     * @param displayName
+     * @param website
+     * @param description
+     * @param phoneNumber
+     */
+    public void updateUserAccountSettings(String displayName,String website,String description,long phoneNumber)
+    {
+        Log.d(TAG, "updateUserAccountSettings: updating user account settings");
+        if(displayName!=null)
+        databaseReference.child(mContext.getString(R.string.dbname_account_settings)).child(userID).child(mContext.getString(R.string.field_display_name)).setValue(displayName);
+        if(description!=null)
+        databaseReference.child(mContext.getString(R.string.dbname_account_settings)).child(userID).child(mContext.getString(R.string.field_description)).setValue(description);
+        if(website!=null)
+        databaseReference.child(mContext.getString(R.string.dbname_account_settings)).child(userID).child(mContext.getString(R.string.field_website)).setValue(website);
+        if(phoneNumber!=0)
+        databaseReference.child(mContext.getString(R.string.dbname_account_settings)).child(userID).child(mContext.getString(R.string.field_phone_number)).setValue(phoneNumber);
+    }
     /*
     ***
      */
