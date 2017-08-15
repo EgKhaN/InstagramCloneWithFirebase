@@ -13,14 +13,20 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.egkhan.instagramclonewithfirebase.Dialogs.ConfirmPasswordDialog;
 import com.egkhan.instagramclonewithfirebase.Models.User;
 import com.egkhan.instagramclonewithfirebase.Models.UserAccountSettings;
 import com.egkhan.instagramclonewithfirebase.Models.UserSettings;
 import com.egkhan.instagramclonewithfirebase.R;
 import com.egkhan.instagramclonewithfirebase.Utils.FirebaseMethods;
 import com.egkhan.instagramclonewithfirebase.Utils.UniversalImageLoader;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.ProviderQueryResult;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -34,7 +40,7 @@ import de.hdodenhof.circleimageview.CircleImageView;
  * Created by EgK on 7/26/2017.
  */
 
-public class EditProfileFragment extends Fragment {
+public class EditProfileFragment extends Fragment implements ConfirmPasswordDialog.OnConfirmPasswordListener {
     private static final String TAG = "EditProfileFragment";
     ImageView profileImageView;
     String userID;
@@ -50,6 +56,62 @@ public class EditProfileFragment extends Fragment {
     private EditText mDisplayName, mUsername, mWebsite, mDescription, mEmail, mPhoneNumber;
     TextView mChangeProfilePhoto;
     CircleImageView mProfilePhoto;
+
+    @Override
+    public void onConfirmPassword(String password) {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
+// Get auth credentials from the user for re-authentication. The example below shows
+// email and password credentials but there are multiple possible providers,
+// such as GoogleAuthProvider or FacebookAuthProvider.
+        AuthCredential credential = EmailAuthProvider
+                .getCredential(mAuth.getCurrentUser().getEmail(), password);
+
+// ///////////////////////////////Prompt the user to re-provide their sign-in credentials
+        user.reauthenticate(credential)
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()) {
+                            Log.d(TAG, "User re-authenticated.");
+                            final String email = mEmail.getText().toString();
+                            //////////////////////////check to see if the email is not alrady present in the database
+                            mAuth.fetchProvidersForEmail(email).addOnCompleteListener(new OnCompleteListener<ProviderQueryResult>() {
+                                @Override
+                                public void onComplete(@NonNull Task<ProviderQueryResult> task) {
+                                    if (task.isSuccessful()) {
+                                        try {
+                                            if (task.getResult().getProviders().size() == 1) {
+                                                Log.d(TAG, "onComplete: that email is already in use");
+                                                Toast.makeText(getActivity(), "That email is already in use", Toast.LENGTH_SHORT).show();
+                                            } else {
+                                                Log.d(TAG, "onComplete: that email is available");
+
+                                                //////////////////////the email is available so update it
+                                                mAuth.getCurrentUser().updateEmail(email)
+                                                        .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                            @Override
+                                                            public void onComplete(@NonNull Task<Void> task) {
+                                                                if (task.isSuccessful()) {
+                                                                    Log.d(TAG, "User email address updated.");
+                                                                    Toast.makeText(getActivity(), "Email updated", Toast.LENGTH_SHORT).show();
+                                                                    firebaseMethods.updateEmail(email);
+                                                                }
+                                                            }
+                                                        });
+                                            }
+                                        } catch (NullPointerException e) {
+                                            Log.d(TAG, "onComplete: NullPointerException " + e.getMessage());
+                                        }
+                                    }
+                                }
+                            });
+                        } else
+                            Log.d(TAG, "onComplete: re-authetication failed");
+                    }
+                });
+    }
+
 
     @Nullable
     @Override
@@ -70,7 +132,7 @@ public class EditProfileFragment extends Fragment {
             }
         });
 
-        ImageView checkMark = (ImageView)view.findViewById(R.id.saveChanges);
+        ImageView checkMark = (ImageView) view.findViewById(R.id.saveChanges);
         checkMark.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -93,42 +155,40 @@ public class EditProfileFragment extends Fragment {
 
     }
 
-void saveProfileSettings()
-{
-    final String displayName = mDisplayName.getText().toString();
-    final String userName = mUsername.getText().toString();
-    final String webSite = mWebsite.getText().toString();
-    final String description = mDescription.getText().toString();
-    final String email = mEmail.getText().toString();
-    final long phoneNumber =Long.parseLong(mPhoneNumber.getText().toString()) ;
+    void saveProfileSettings() {
+        final String displayName = mDisplayName.getText().toString();
+        final String userName = mUsername.getText().toString();
+        final String webSite = mWebsite.getText().toString();
+        final String description = mDescription.getText().toString();
+        final String email = mEmail.getText().toString();
+        final long phoneNumber = Long.parseLong(mPhoneNumber.getText().toString());
 
-    databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
-        @Override
-        public void onDataChange(DataSnapshot dataSnapshot) {
-            User user = new User();
 
-            Log.d(TAG, "onDataChange: CURRENT USERNAME :");
+        Log.d(TAG, "onDataChange: CURRENT USERNAME :");
 
-            //case1 : the user did not change their username or
-            if(!mUserSettings.getUser().getUsername().equals(userName))
-            {
-checkIfUserNameExists(userName);
-            }
-            //case2 : if  user did change their username.We need t check for uniqueness
-            else{
-
-            }
+        //case1 : the user did not change their username
+        if (!mUserSettings.getUser().getUsername().equals(userName)) {
+            checkIfUserNameExists(userName);
         }
-
-        @Override
-        public void onCancelled(DatabaseError databaseError) {
-
+        //case2 : if  user did change his email
+        //email değişince authentication'da değişiklik lazım
+        if (!mUserSettings.getUser().getEmail().equals(email)) {
+            //step 1- reauthenticate
+            // confirm the password and email
+            ConfirmPasswordDialog dialog = new ConfirmPasswordDialog();
+            dialog.show(getFragmentManager(), getString(R.string.confirm_password_dialog));
+            //dialog kapandığında hedefin EditProfileFragment olduğunu bilecek,bu sayede arada değişken gönderebilicez
+            dialog.setTargetFragment(EditProfileFragment.this, 1);
+            //step 2- check if the email already is registered
+            //fetProvidersForEmail(String email)
+            //step 2- change the email
+            //submit the new email to the database and authentication
         }
-    });
-}
-/*
-* check if userName is exists in the database
-* */
+    }
+
+    /*
+    * check if userName is exists in the database
+    * */
     private void checkIfUserNameExists(final String userName) {
         Log.d(TAG, "checkIfUserNameExists: checking if the userName is exists in the database ");
 
@@ -137,20 +197,18 @@ checkIfUserNameExists(userName);
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                if(!dataSnapshot.exists()){
+                if (!dataSnapshot.exists()) {
                     //add the username
                     firebaseMethods.updateUsername(userName);
                     Toast.makeText(getActivity(), "Saved username", Toast.LENGTH_SHORT).show();
                 }
 
-                    for (DataSnapshot singleSnapshot : dataSnapshot.getChildren())
-                    {
-                        if(singleSnapshot.exists())
-                        {
-                            Log.d(TAG, "onDataChange: found a match"+ singleSnapshot.getValue(User.class).getUsername());
-                            Toast.makeText(getActivity(), "That username  already exists", Toast.LENGTH_SHORT).show();
-                        }
+                for (DataSnapshot singleSnapshot : dataSnapshot.getChildren()) {
+                    if (singleSnapshot.exists()) {
+                        Log.d(TAG, "onDataChange: found a match" + singleSnapshot.getValue(User.class).getUsername());
+                        Toast.makeText(getActivity(), "That username  already exists", Toast.LENGTH_SHORT).show();
                     }
+                }
 
             }
 
@@ -159,7 +217,7 @@ checkIfUserNameExists(userName);
 
             }
         });
-        
+
     }
 
     void setProfileWidgets(UserSettings userSettings) {
@@ -230,4 +288,6 @@ checkIfUserNameExists(userName);
             mAuth.removeAuthStateListener(mAuthListener);
         }
     }
+
+
 }

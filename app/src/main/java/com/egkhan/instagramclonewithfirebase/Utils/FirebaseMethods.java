@@ -168,9 +168,16 @@ public class FirebaseMethods {
         return new UserSettings(user, settings);
     }
 
+    /*
+    ***
+     */
     public void updateUsername(String userName) {
         Log.d(TAG, "updateUsername: updating userName to" + userName);
         databaseReference.child(mContext.getString(R.string.dbname_users)).child(userID).child(mContext.getString(R.string.field_username)).setValue(userName);
         databaseReference.child(mContext.getString(R.string.dbname_account_settings)).child(userID).child(mContext.getString(R.string.field_username)).setValue(userName);
+    }
+    public void updateEmail(String email) {
+        Log.d(TAG, "updateUsername: updating email to" + email);
+        databaseReference.child(mContext.getString(R.string.dbname_users)).child(userID).child(mContext.getString(R.string.field_email)).setValue(email);
     }
 }
