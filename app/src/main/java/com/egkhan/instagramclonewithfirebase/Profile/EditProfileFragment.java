@@ -1,5 +1,6 @@
 package com.egkhan.instagramclonewithfirebase.Profile;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -18,6 +19,7 @@ import com.egkhan.instagramclonewithfirebase.Models.User;
 import com.egkhan.instagramclonewithfirebase.Models.UserAccountSettings;
 import com.egkhan.instagramclonewithfirebase.Models.UserSettings;
 import com.egkhan.instagramclonewithfirebase.R;
+import com.egkhan.instagramclonewithfirebase.Share.ShareActivity;
 import com.egkhan.instagramclonewithfirebase.Utils.FirebaseMethods;
 import com.egkhan.instagramclonewithfirebase.Utils.UniversalImageLoader;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -152,7 +154,6 @@ public class EditProfileFragment extends Fragment implements ConfirmPasswordDial
         mChangeProfilePhoto = (TextView) view.findViewById(R.id.changeProfilePhotoText);
         profileImageView = (ImageView) view.findViewById(R.id.profile_photo);
         firebaseMethods = new FirebaseMethods(getActivity());
-
     }
 
     void saveProfileSettings() {
@@ -252,6 +253,17 @@ public class EditProfileFragment extends Fragment implements ConfirmPasswordDial
         mDescription.setText(settings.getDescription());
         mEmail.setText(user.getEmail());
         mPhoneNumber.setText(String.valueOf(user.getPhone_number()));
+
+        mChangeProfilePhoto.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d(TAG, "onClick: changing profile photo");
+                Intent intent = new Intent(getActivity(), ShareActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);//268435450,sıfır olmaması önemli,edit profile dan geldiği anlaşılsın diye
+                getActivity().startActivity(intent);
+                getActivity().finish();
+            }
+        });
     }
 
     /*

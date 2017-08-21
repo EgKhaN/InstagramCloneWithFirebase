@@ -18,12 +18,14 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.egkhan.instagramclonewithfirebase.Models.Photo;
 import com.egkhan.instagramclonewithfirebase.Models.User;
 import com.egkhan.instagramclonewithfirebase.Models.UserAccountSettings;
 import com.egkhan.instagramclonewithfirebase.Models.UserSettings;
 import com.egkhan.instagramclonewithfirebase.R;
 import com.egkhan.instagramclonewithfirebase.Utils.BottomNavigationViewHelper;
 import com.egkhan.instagramclonewithfirebase.Utils.FirebaseMethods;
+import com.egkhan.instagramclonewithfirebase.Utils.GridImageAdapter;
 import com.egkhan.instagramclonewithfirebase.Utils.UniversalImageLoader;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -31,8 +33,11 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.ittianyu.bottomnavigationviewex.BottomNavigationViewEx;
+
+import java.util.ArrayList;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -43,6 +48,7 @@ import de.hdodenhof.circleimageview.CircleImageView;
 public class ProfileFragment extends Fragment {
     private static final String TAG = "ProfileFragment";
     public static final int ACTIVITY_NUM = 4;
+    private static final int NUM_GRID_COLUMS = 3;
     private TextView mPosts, mFollowers, mFollowing, mDisplayName, mUserName, mWebsite, mDescription;
     ProgressBar mProgresBar;
     CircleImageView mProfilePhoto;
@@ -72,6 +78,7 @@ public class ProfileFragment extends Fragment {
         setupToolbar();
 
         setupFirebaseAuth();
+        setupGridView();
 
         TextView editProfile = (TextView) view.findViewById(R.id.textEditProfile);
         editProfile.setOnClickListener(new View.OnClickListener() {
@@ -86,7 +93,39 @@ public class ProfileFragment extends Fragment {
 
         return view;
     }
+void setupGridView()
+{
+    Log.d(TAG, "setupGridView: setting up image grid.");
 
+    final ArrayList<Photo> photos = new ArrayList<>();
+    DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
+    Query query = reference.child(getString(R.string.dbname_user_photos))
+            .child(FirebaseAuth.getInstance().getCurrentUser().getUid());
+    query.addListenerForSingleValueEvent(new ValueEventListener() {
+        @Override
+        public void onDataChange(DataSnapshot dataSnapshot) {
+            for(DataSnapshot singleSnapshot : dataSnapshot.getChildren()){
+                photos.add(singleSnapshot.getValue(Photo.class));
+            }
+            //setup our imagegrid
+            int gridWidth = getResources().getDisplayMetrics().widthPixels;
+            int imageWidth = gridWidth/NUM_GRID_COLUMS;
+            gridView.setColumnWidth(imageWidth);
+
+            ArrayList<String> imgUrls = new ArrayList<String>();
+            for (int i = 0; i < photos.size(); i++) {
+                imgUrls.add(photos.get(i).getImage_path());
+            }
+            GridImageAdapter adapter = new GridImageAdapter(getActivity(),R.layout.layout_grid_imageview,"",imgUrls);
+            gridView.setAdapter(adapter);
+        }
+
+        @Override
+        public void onCancelled(DatabaseError databaseError) {
+            Log.d(TAG, "onCancelled: query cancelled");
+        }
+    });
+}
     void setProfileWidgets(UserSettings userSettings)
     {
         Log.d(TAG, "setProfileWidgets: setting widgets with data retrieving from firebase database");
